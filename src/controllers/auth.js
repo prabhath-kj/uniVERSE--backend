@@ -1,48 +1,59 @@
 import User from "../models/user.js";
 import Token from "../models/token.js";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
-import sendMail from "../services/mailServices.js";
-import { log } from "console";
+import { OAuth2Client } from "google-auth-library";
+import * as dotenv from "dotenv";
+dotenv.config();
 
-export const register = async (req, res) => {
-  const { username, email, password } = req.body;
-  const token = crypto.randomBytes(32).toString("hex");
+
+
+export const googleRegister = async (req, res) => {
+  const { name, email, picture, sub } = req.body;
+  const user = await User.findOne({ email: email });
+  if (user)
+    return res.json({
+      error: `${user?.email} is associated with an existing account.`,
+    });
   try {
-    const isOldUser = (await User.findOne({ email: email })) ?? undefined;
-    if (isOldUser) {
-      return res.status(200).send({ message: "User already exist." });
-    }
-    if (isOldUser && isOldUser.blocked) {
-      return res.status(200).json({ message: "User blocked" });
-    }
-
-    const salt = await bcrypt.genSalt();
-    const passwordHash = await bcrypt.hash(password, salt);
-    const newUser = new User({
-      username: username,
-      email: email,
-      password: passwordHash,
-    });
-
-    const response = await newUser.save();
-
-    const newToken = new Token({
-      userId: response._id,
-      token: token,
-    });
-    await newToken.save();
-    const url = `${process.env.BASE_URL}register/${newUser._id}/verify/${newToken.token}`;
-    await sendMail(email, "Verify Email", url);
+    await User.findOrCreate(
+      { googleId: sub },
+      { username: name, email: email, profilePic: picture, googleId: sub }
+    );
 
     res
-      .status(201)
-      .json({ message: "An Email sent to your account please verify" });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+      .status(200)
+      .json({ message: "Resistered Successfull,Please login to continue" });
+  } catch (error) {
+    console.error("Error in Google registration:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const googleLogin = async (req, res) => {
+  try {
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    const ticket = await client.verifyIdToken({
+      idToken: req.body.jwt,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const {sub} = ticket.getPayload();
+
+    const user = await User.findOne({ googleId: sub });
+    if (user) {
+      const token = user.generateToken();
+      return res
+        .status(200)
+        .json({user:user, token: token, message: "Logged in successfully" });
+    } else {
+      return res.status(200).json({ message: "Invalid access token" });
+    }
+  } catch (error) {
+    console.error("Error during Google login:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 
 export const verify = async (req, res) => {
   try {
@@ -75,42 +86,3 @@ export const verify = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ email: email });
-    if (!user) return res.json({ message: "Invalid email or password" });
-    const comparePassword = await bcrypt.compare(password, user.password);
-    if (!comparePassword)
-      return res.json({ message: "Invalid Email or Password" });
-
-    if (!user.isEmailVerified) {
-      const token = await Token.findOne({ userId: user._id });
-      if (token)
-        return res.json({
-          message: "you already have a unverified mail,please verify ",
-        });
-      if (!token) {
-        const newToken = new Token({
-          userId: response._id,
-          token: token,
-        });
-        await newToken.save();
-        const url = `${process.env.BASE_URL}register/${newUser._id}/verify/${newToken.token}`;
-        await sendMail(email, "Verify Email", url);
-
-        return res
-          .status(201)
-          .json({ message: "An Email sent to your account please verify" });
-      }
-    } else {
-      const token=user.generateToken()
-      return res
-        .status(200)
-        .json({ data:token, message: "logged in successfully" });
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};

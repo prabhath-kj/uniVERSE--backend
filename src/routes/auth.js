@@ -1,10 +1,12 @@
 import express from "express";
-import { register,verify,login } from "../controllers/auth.js";
+import {verify,googleRegister,googleLogin} from "../controllers/auth.js";
+
 const router = express.Router();
 
 
-router.route("/login").post(login);
-router.route("/register").post(register);
+
 router.route("/:id/verify/:token").get(verify)
+router.route("/google/login").post(googleLogin)
+router.route("/google/register").post(googleRegister)
 
 export default router

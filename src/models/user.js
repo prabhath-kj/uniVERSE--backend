@@ -1,6 +1,12 @@
 import { Schema, model } from "mongoose";
-import  Jwt  from "jsonwebtoken";
+import Jwt from "jsonwebtoken";
+import findOrCreate from "mongoose-findorcreate";
+
 const userSchema = new Schema({
+  googleId: {
+    type: String,
+    unique:true,
+  },
   username: {
     type: String,
     required: true,
@@ -13,7 +19,6 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: true,
   },
   profilePic: {
     type: String,
@@ -63,11 +68,19 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  isAdmin:{
+    type:Boolean,
+    default:false
+  }
 });
-userSchema.methods.generateToken=function(){
-   const token= Jwt.sign({id:this._id},process.env.SEC_KEY,{expiresIn:"1d"})
-   return token
-}
+userSchema.methods.generateToken = function () {
+  const token = Jwt.sign({ id: this._id }, process.env.SEC_KEY, {
+    expiresIn: "1d",
+  });
+  return token;
+};
+
+userSchema.plugin(findOrCreate);
 
 const User = model("User", userSchema);
 
