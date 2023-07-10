@@ -11,7 +11,7 @@ const postSchema = Schema(
       required: true,
     },
     description: String,
-    picturePath: String,
+    picturePath: Array,
     userPicturePath: String,
     likes: {
       type: Map,
@@ -21,6 +21,12 @@ const postSchema = Schema(
       type: Array,
       default: [],
     },
+    savedBy: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );

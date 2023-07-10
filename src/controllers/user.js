@@ -3,6 +3,7 @@ import Token from "../models/token.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import sendMail from "../services/mailServices.js";
+import cloudinary from "../services/clodinary.js";
 
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -50,6 +51,7 @@ export const login = async (req, res) => {
   try {
     const user = await User.findOne({ email: email });
     if (!user) return res.json({ message: "Invalid email or password" });
+    if (user?.blocked) return res.json({ message: "you are blocked by admin" });
     if (!user?.password)
       return res.json({ message: "Invalid email or password" });
     const comparePassword = bcrypt.compare(password, user.password);
@@ -83,5 +85,65 @@ export const login = async (req, res) => {
     }
   } catch (err) {
     console.error(err);
+  }
+};
+
+export const getUser = async (req, res) => {
+  try {
+    if (!req?.body?.query) {
+      return res
+        .status(200)
+        .json({ message: "Query parameter 'query' required" });
+    }
+
+    const query = req.body.query;
+
+    const users = await User.find({
+      username: { $regex: query, $options: "i" },
+    }).exec();
+
+    if (users.length === 0) {
+      return res.status(200).json({ message: "No users found" });
+    }
+
+    res.json({ users: users });
+  } catch (err) {
+    res.status(200).json({ message: err.message });
+  }
+};
+
+export const editUser = async (req, res) => {
+
+  try {
+    const { _id } = req.user;
+    let secureUrl = req.user.profilePic; // Default profilePic value
+
+    if (req.file) {
+      const { path } = req.file;
+      const { secure_url } = await cloudinary.uploader.upload(path);
+      secureUrl = secure_url;
+    }
+
+    const { username, email } = req.body;
+    const updateUser = {
+      username: username,
+      email: email,
+      profilePic: secureUrl,
+    };
+
+    // Retrieve the user instance from the database
+    const user = await User.findById(_id);
+
+    // Update the user instance
+    user.set(updateUser);
+    await user.save();
+
+    // Generate the token using the user's generateToken method
+    const token = user.generateToken();
+
+    res.status(200).json({ user: user, token: token });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 };
