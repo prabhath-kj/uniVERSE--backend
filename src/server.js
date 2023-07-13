@@ -20,10 +20,7 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("short"));
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
-app.use((req, res, next) => {
-  res.setHeader('Set-Cookie', 'cookieName=value; SameSite=Strict ; Secure');
-  next();
-});
+
 app.use(
   cors({
     origin:process.env.ORIGIN,

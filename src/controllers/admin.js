@@ -1,12 +1,13 @@
 import User from "../models/user.js";
-import jwt from "jsonwebtoken";
+import Post from "../models/post.js";
 
 export const login = async (req, res) => {
   try {
     const { email } = req.body;
     var validAdmin = await User.findOne({ email: email });
     if (validAdmin.isAdmin) {
-      const token = validAdmin.generateToken();
+      const validate={admin:"true"}
+      const token = validAdmin.generateToken(validate);
       return res.status(200).json({
         message: "logged in succesfully",
         admin: validAdmin,
@@ -22,7 +23,6 @@ export const login = async (req, res) => {
 };
 
 export const getAllUsers = async (req, res) => {
-  console.log("hiiiiiiii");
   try {
     const users = await User.find();
     if (!users) return res.status(200).json({ message: "No users found" });
@@ -82,3 +82,14 @@ export const getUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+export const getPosts=async(req,res)=>{
+    try {
+      const post = await Post.find({});
+      res.status(200).json({ post: post });
+    } catch (err) {
+      res.status(404).json({ message: err.message });
+    }
+}

@@ -28,7 +28,7 @@ export const create = async (req, res) => {
 
     await newPost.save();
 
-    const posts = await Post.find();
+    const posts = await Post.find({isDeleted:false});
     res.status(201).json({ post: posts });
   } catch (err) {
     console.log(err);
@@ -38,7 +38,7 @@ export const create = async (req, res) => {
 
 export const getTimeLine = async (req, res) => {
   try {
-    const post = await Post.find();
+    const post = await Post.find({isDeleted:false});
     res.status(200).json({ post: post });
   } catch (err) {
     res.status(404).json({ message: err.message });
@@ -48,7 +48,7 @@ export const getTimeLine = async (req, res) => {
 export const getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
-    const post = await Post.find({ userId });
+    const post = await Post.find({ userId ,isDeleted:false});
     res.status(200).json({ post: post });
   } catch (err) {
     res.status(404).json({ message: err.message });
@@ -83,10 +83,18 @@ export const likePost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
   try {
-    const { id } = req.body;
-    await Post.findByIdAndRemove(id);
+    const { id,set } = req.body;
+  const updatedPost=  await Post.findByIdAndUpdate(
+      id,
+      {
+        isDeleted:set,
+      },
+      {
+        new: true,
+      }
+    );
 
-    res.status(200).json({ success: true, message: "Successfully removed" });
+    res.status(200).json({post:updatedPost, success: true, message: "Successfully updated" });
   } catch (err) {
     res.status(404).json({ message: err.message });
   }
@@ -164,8 +172,7 @@ export const getReportedPosts = async (req, res) => {
   try {
     // Find all reported posts
     const reportedPosts = await Report.find().populate("postId");
-
-    return res.json({report:reportedPosts});
+    return res.json({ report: reportedPosts });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error" });

@@ -74,10 +74,20 @@ const userSchema = new Schema({
   }
 });
 userSchema.methods.generateToken = function () {
-  const token = Jwt.sign({ id: this._id }, process.env.SEC_KEY, {
-    expiresIn: "1d",
-  });
-  return token;
+  if(arguments[0].admin){
+   
+    const token = Jwt.sign({ id: this._id,admin:this.isAdmin}, process.env.SEC_KEY, {
+      expiresIn: "1d",
+    });
+    return token;
+  }else{
+    
+    const token = Jwt.sign({ id: this._id }, process.env.SEC_KEY, {
+      expiresIn: "1d",
+    });
+    return token;
+  }
+ 
 };
 
 userSchema.plugin(findOrCreate);

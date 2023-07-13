@@ -1,7 +1,7 @@
 import passport from "passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import User from "../models/user.js";
-import * as dotenv from "dotenv";
+import dotenv from "dotenv";
 dotenv.config();
 
 const options = {
@@ -9,18 +9,36 @@ const options = {
   secretOrKey: process.env.SEC_KEY,
 };
 
-const strategy = new Strategy(options, async (payload, done) => {
-  const user = await User.findById(payload.id);
-
-  if (user) {
-    return done(null, user);
-  } else {
-    return done(null, false);
+const userStrategy = new Strategy(options, async (payload, done) => {
+  try {
+    const user = await User.findById(payload.id);
+    if (user) {
+      return done(null, user);
+    } else {
+      return done(null, false);
+    }
+  } catch (error) {
+    return done(error);
   }
 });
 
-passport.use(strategy);
+const adminStrategy = new Strategy(options, async (payload, done) => {
+  try {
+    const user = await User.findById(payload.id);
+    if (user && user.isAdmin && payload.admin === true) {
+      return done(null, user);
+    } else {
+      return done(null, false);
+    }
+  } catch (error) {
+    return done(error);
+  }
+});
 
-const authMiddleware = passport.authenticate("jwt", { session: false });
+passport.use("user", userStrategy);
+passport.use("admin", adminStrategy);
 
-export default authMiddleware;
+const authMiddleware = passport.authenticate("user", { session: false });
+const adminAuthMiddleware = passport.authenticate("admin", { session: false });
+
+export { authMiddleware, adminAuthMiddleware };

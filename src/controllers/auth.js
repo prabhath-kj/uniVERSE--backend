@@ -41,7 +41,9 @@ export const googleLogin = async (req, res) => {
 
     const user = await User.findOne({ googleId: sub });
     if (user) {
-      const token = user.generateToken();
+      const validate={admin:"false"}
+
+      const token = user.generateToken(validate);
       return res
         .status(200)
         .json({user:user, token: token, message: "Logged in successfully" });

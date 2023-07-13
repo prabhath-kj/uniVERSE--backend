@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import sendMail from "../services/mailServices.js";
 import cloudinary from "../services/clodinary.js";
+import { log } from "console";
 
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -78,7 +79,8 @@ export const login = async (req, res) => {
           .json({ message: "An Email sent to your account please verify" });
       }
     } else {
-      const token = user.generateToken();
+      const validate = { admin: "false" };
+      const token = user.generateToken(validate);
       return res
         .status(200)
         .json({ user: user, token: token, message: "logged in successfully" });
@@ -113,7 +115,6 @@ export const getUser = async (req, res) => {
 };
 
 export const editUser = async (req, res) => {
-
   try {
     const { _id } = req.user;
     let secureUrl = req.user.profilePic; // Default profilePic value
@@ -145,5 +146,94 @@ export const editUser = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const addFollower = async (req, res) => {
+  const { _id } = req.user;
+  const { userId } = req.body;
+  try {
+    const user = await User.findById(_id);
+    const userToFollow = await User.findById(userId);
+
+    if (!user || !userToFollow) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (user.following.includes(userId)) {
+      return res.status(400).json({ message: "Already following this user." });
+    }
+
+    user.following.push(userId);
+    userToFollow.followers.push(_id);
+
+    const { following } = await user.save();
+    const { followers } = await userToFollow.save();
+
+    return res.status(200).json({
+      followers: followers,
+      following: following,
+      message: "Successfully followed the user.",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const removeFollower = async (req, res) => {
+  const { _id } = req.user;
+  const { userId } = req.body;
+
+  console.log(_id, userId);
+  try {
+    const user = await User.findById(_id);
+    const userToUnFollow = await User.findById(userId);
+
+    if (!user || !userToUnFollow) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const followingIndex = user.following.indexOf(userId);
+    if (followingIndex === -1) {
+      return res.status(400).json({ message: "Not following this user." });
+    }
+
+    const followerIndex = userToUnFollow.followers.indexOf(_id);
+    if (followerIndex === -1) {
+      return res.status(400).json({ message: "User is not a follower." });
+    }
+
+    user.following.splice(followingIndex, 1);
+    userToUnFollow.followers.splice(followerIndex, 1);
+
+    const { following } = await user.save();
+    const { followers } = await userToUnFollow.save();
+
+    return res.status(200).json({
+      followers: followers,
+      following: following,
+      message: "Successfully unfollowed the user.",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error." });
+    s;
+  }
+};
+
+export const getProfileUser = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res
+      .status(200)
+      .json({ message: "Query parameter 'query' required" });
+  }
+  try {
+    const user = await User.findOne({username:id});
+    res.status(200).json({ user: user });
+  } catch (err) {
+    return res.status(500).json({ message: "internal server error" });
   }
 };
