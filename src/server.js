@@ -9,6 +9,8 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
 import post from "./routes/post.js";
 import admin from "./routes/admin.js";
+import notification from"./routes/notifications.js"
+import comment from "./routes/comments.js"
 
 dotenv.config();
 connectDb();
@@ -31,6 +33,8 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/post", post);
+app.use("/api/notification", notification);
+app.use("/api/comments",comment)
 
 //admin
 app.use("/api/admin", admin);

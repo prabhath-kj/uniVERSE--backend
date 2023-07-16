@@ -17,10 +17,6 @@ const postSchema = Schema(
       type: Map,
       of: Boolean,
     },
-    comments: {
-      type: Array,
-      default: [],
-    },
     savedBy: [
       {
         type: Schema.Types.ObjectId,

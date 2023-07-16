@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import sendMail from "../services/mailServices.js";
 import cloudinary from "../services/clodinary.js";
-import { log } from "console";
+import {createNotification } from "../models/notification.js"
 
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -140,7 +140,7 @@ export const editUser = async (req, res) => {
     await user.save();
 
     // Generate the token using the user's generateToken method
-    const token = user.generateToken();
+    const token = user.generateToken({admin:false});
 
     res.status(200).json({ user: user, token: token });
   } catch (err) {
@@ -170,8 +170,9 @@ export const addFollower = async (req, res) => {
     const { following } = await user.save();
     const { followers } = await userToFollow.save();
 
+    await createNotification(_id, userId, 'followed');
+
     return res.status(200).json({
-      followers: followers,
       following: following,
       message: "Successfully followed the user.",
     });
@@ -209,9 +210,9 @@ export const removeFollower = async (req, res) => {
 
     const { following } = await user.save();
     const { followers } = await userToUnFollow.save();
+    await createNotification(_id, userId, 'unfollowed');
 
     return res.status(200).json({
-      followers: followers,
       following: following,
       message: "Successfully unfollowed the user.",
     });

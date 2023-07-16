@@ -27,6 +27,7 @@ router.route("/follow").post(authMiddleware, addFollower);
 
 router.route("/unFollow").post(authMiddleware, removeFollower);
 
-router.route("/:id").get(authMiddleware,getProfileUser);
+router.route("/:id").get(authMiddleware, getProfileUser);
+
 
 export default router;
