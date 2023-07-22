@@ -1,4 +1,6 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose from "mongoose";
+
+const { Schema, model } = mongoose;
 
 const commentSchema = new Schema({
   userId: {
@@ -9,7 +11,9 @@ const commentSchema = new Schema({
   postId: {
     type: Schema.Types.ObjectId,
     ref: "Post",
-    required: true,
+    required: function () {
+      return !this.parent;
+    },
   },
   comment: {
     type: String,
@@ -17,52 +21,20 @@ const commentSchema = new Schema({
   },
   date: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
+  parent: { type: Schema.Types.ObjectId, ref: "Comment", default: null },
   likes: [
     {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
   ],
-  replies: [
-    {
-      userId: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-      comment: {
-        type: String,
-        required: true,
-      },
-      date: {
-        type: Date,
-        default: Date.now(),
-      },
-      replies: [
-        {
-          userId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-          },
-          comment: {
-            type: String,
-            required: true,
-          },
-          date: {
-            type: Date,
-            default: Date.now(),
-          },
-        },
-      ],
-    },
-  ],
+  replies: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
 });
 
 
-const Comment = model("comment", commentSchema);
+
+
+const Comment = model("Comment", commentSchema);
 export default Comment;

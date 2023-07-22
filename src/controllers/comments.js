@@ -24,14 +24,10 @@ export const postComment = async (req, res) => {
 export const getAllComments = async (req, res) => {
   try {
     const { postId } = req.params;
-    console.log(postId);
 
-    const comments = await Comment.find({ postId: postId, isDeleted: false })
-      .populate("userId")
-      .populate("replies.userId")
-      .exec();
+    const comments = await Comment.find({ postId: postId });
 
-
+    console.log(comments);
     res.json({ comments: comments });
   } catch (error) {
     console.log(error);
@@ -42,13 +38,8 @@ export const getAllComments = async (req, res) => {
 export const deleteComment = async (req, res) => {
   try {
     const { id } = req.body;
-    await Comment.findByIdAndUpdate(
-      id,
-      {
-        isDeleted: true,
-      },
-      { new: true }
-    );
+
+    await Comment.findByIdAndDelete(id);
 
     res.json({ message: "Successfully deleted" });
   } catch (error) {
@@ -62,7 +53,7 @@ export const likeComment = async (req, res) => {
   const { commentId } = req.body;
 
   try {
-    const comment = await Comment.findById(commentId).populate("userId");
+    const comment = await Comment.findById(commentId);
     if (!comment) return res.status(404).json({ message: "Comment not found" });
 
     const indexOfUser = comment.likes.indexOf(userId);
@@ -77,7 +68,7 @@ export const likeComment = async (req, res) => {
 
     await comment.save();
 
-    res.json({ comment: comment });
+    res.json({ message:"Liked" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -85,57 +76,24 @@ export const likeComment = async (req, res) => {
 
 export const replyComment = async (req, res) => {
   try {
-    const { _id:userId } = req.user;
+    const { _id: userId } = req.user;
     const { commentId, reply } = req.body;
 
-    // Function to find the parent comment in the nested replies array
-    const findParentComment = (comments, targetId) => {
-      for (const comment of comments) {
-        if (comment._id.toString() === targetId) {
-          return comment;
-        }
-        if (comment.replies && comment.replies.length > 0) {
-          const parentComment = findParentComment(comment.replies, targetId);
-          if (parentComment) {
-            return parentComment;
-          }
-        }
-      }
-      return null;
-    };
-
-    // Find the parent comment by its _id
-    const parentComment = await findParentComment(
-      await Comment.find(),
-      commentId
-    );
-
-    if (!parentComment) {
-      return res.status(404).json({ message: "Parent comment not found." });
+    const parentReply = await Comment.findById(commentId);
+    if (!parentReply) {
+      return res.status(404).json({ error: "Parent reply not found." });
     }
 
-    // Create the new reply object
-    const newReply = {
+    const newReply = await Comment.create({
       userId,
-      comment:reply,
-      date: new Date(),
-    };
+      comment: reply,
+      parent: commentId,
+    });
 
-    // Add the new reply to the parent comment's replies array
-    console.log(parentComment);
-    parentComment.replies.push(newReply);
+    parentReply.replies.push(newReply._id);
+    await parentReply.save();
 
-    // Save the updated parent comment
-    await parentComment.save();
-
-    const populatedParentComment = await Comment.findById(commentId)
-      .populate({
-        path: "replies",
-        populate: { path: "userId" },
-      })
-      .populate("userId");
-
-    return res.status(201).json({ comment: populatedParentComment });
+    return res.status(201).json({ message: "Successfully updated." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Failed to add reply." });
