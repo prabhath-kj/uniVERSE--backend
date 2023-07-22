@@ -11,6 +11,9 @@ import post from "./routes/post.js";
 import admin from "./routes/admin.js";
 import notification from"./routes/notifications.js"
 import comment from "./routes/comments.js"
+import conversation from "./routes/conversation.js"
+import message from "./routes/message.js"
+
 
 dotenv.config();
 connectDb();
@@ -35,6 +38,9 @@ app.use("/api/user", userRoutes);
 app.use("/api/post", post);
 app.use("/api/notification", notification);
 app.use("/api/comments",comment)
+app.use("/api/conversations",conversation)
+app.use("/api/messages",message)
+
 
 //admin
 app.use("/api/admin", admin);

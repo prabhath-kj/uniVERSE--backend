@@ -88,3 +88,11 @@ export const verify = async (req, res) => {
   }
 };
 
+export const checkUserBlocked=async(req,res)=>{
+  const {blocked}=req.user
+  try {
+    res.status(200).json({message:"success"})
+  } catch (error) {
+    res.status(500).json({error:error})
+  }
+}

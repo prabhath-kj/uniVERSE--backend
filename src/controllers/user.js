@@ -4,7 +4,8 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import sendMail from "../services/mailServices.js";
 import cloudinary from "../services/clodinary.js";
-import {createNotification } from "../models/notification.js"
+import { createNotification } from "../models/notification.js";
+import { log } from "console";
 
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -140,7 +141,7 @@ export const editUser = async (req, res) => {
     await user.save();
 
     // Generate the token using the user's generateToken method
-    const token = user.generateToken({admin:false});
+    const token = user.generateToken({ admin: false });
 
     res.status(200).json({ user: user, token: token });
   } catch (err) {
@@ -170,7 +171,7 @@ export const addFollower = async (req, res) => {
     const { following } = await user.save();
     const { followers } = await userToFollow.save();
 
-    await createNotification(_id, userId, 'followed');
+    await createNotification(_id, userId, "followed");
 
     return res.status(200).json({
       following: following,
@@ -210,7 +211,7 @@ export const removeFollower = async (req, res) => {
 
     const { following } = await user.save();
     const { followers } = await userToUnFollow.save();
-    await createNotification(_id, userId, 'unfollowed');
+    await createNotification(_id, userId, "unfollowed");
 
     return res.status(200).json({
       following: following,
@@ -232,9 +233,44 @@ export const getProfileUser = async (req, res) => {
       .json({ message: "Query parameter 'query' required" });
   }
   try {
-    const user = await User.findOne({username:id});
+    const user = await User.findOne({ username: id });
     res.status(200).json({ user: user });
   } catch (err) {
     return res.status(500).json({ message: "internal server error" });
+  }
+};
+
+export const getFollowers = async (req, res) => {
+  const { _id } = req.user;
+
+  try {
+    const currentUser = await User.findById(_id).populate({
+      path: "followers",
+      select: "_id username profilePic email",
+      model: User,
+    });
+    const followerUsers = currentUser.followers;
+
+    res.json(followerUsers);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving followers" });
+  }
+};
+
+export const getFollowing = async (req, res) => {
+  const { _id } = req.user;
+  console.log(req.user);
+
+  try {
+    const currentUser = await User.findById(_id).populate({
+      path: "following",
+      select: "_id username profilePic email",
+      model: User,
+    });
+    const followingUsers = currentUser.following;
+
+    res.json(followingUsers);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving following users" });
   }
 };

@@ -7,6 +7,8 @@ import {
   addFollower,
   removeFollower,
   getProfileUser,
+  getFollowers,
+  getFollowing,
 } from "../controllers/user.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -29,5 +31,8 @@ router.route("/unFollow").post(authMiddleware, removeFollower);
 
 router.route("/:id").get(authMiddleware, getProfileUser);
 
+router.route("/following/all").get(authMiddleware, getFollowing);
+
+router.route("/followers/all").get(authMiddleware, getFollowers);
 
 export default router;

@@ -40,20 +40,18 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  chatUsers: {
-    type: [Schema.Types.ObjectId],
-    default: [],
-  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
   followers: {
     type: [Schema.Types.ObjectId],
+    ref: "User",
     default: [],
   },
   following: {
     type: [Schema.Types.ObjectId],
+    ref: "User",
     default: [],
   },
   notifications: {

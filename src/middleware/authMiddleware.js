@@ -12,7 +12,7 @@ const options = {
 const userStrategy = new Strategy(options, async (payload, done) => {
   try {
     const user = await User.findById(payload.id);
-    if (user) {
+    if (user &&!user.blocked) {
       return done(null, user);
     } else {
       return done(null, false);
