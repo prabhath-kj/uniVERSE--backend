@@ -9,6 +9,7 @@ import {
   getDrafted,
   reportPost,
   savePost,
+  deleteReport,
 } from "../controllers/post.js";
 import upload from "../middleware/upload.js";
 import {
@@ -18,14 +19,24 @@ import {
 
 const router = express.Router();
 
-router.post("/", upload.array("images", 4), authMiddleware, create);
-router.get("/timeline", authMiddleware, getTimeLine);
-router.get("/:userId", authMiddleware, getUserPosts);
-router.get("/like/:id", authMiddleware, likePost);
-router.post("/save", authMiddleware, savePost);
-router.get("/saved/all", authMiddleware, getDrafted);
-router.post("/report", authMiddleware, reportPost);
-router.get("/report/all", getReportedPosts);
-router.post("/delete", deletePost);
+router.route("/").post(upload.array("images", 4), authMiddleware, create);
+
+router.route("/timeline").get(authMiddleware, getTimeLine);
+
+router.route("/:userId").get(authMiddleware, getUserPosts);
+
+router.route("/like/:id").get(authMiddleware, likePost);
+
+router.route("/save").post(authMiddleware, savePost);
+
+router.route("/saved/all").get(authMiddleware, getDrafted);
+
+router.route("/report").post(authMiddleware, reportPost);
+
+router.route("/report/all").get(getReportedPosts);
+
+router.route("/report/delete").post(adminAuthMiddleware, deleteReport);
+
+router.route("/delete").post(deletePost);
 
 export default router;

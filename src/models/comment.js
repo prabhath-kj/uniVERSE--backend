@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import  Populate  from "../utils/autoPopulate.js";
 
 const { Schema, model } = mongoose;
 
@@ -34,7 +35,11 @@ const commentSchema = new Schema({
 });
 
 
-
+commentSchema
+    .pre('findOne', Populate('userId'))
+    .pre('findOne', Populate('replies'))
+    .pre('find', Populate('userId'))
+    .pre('find', Populate('replies'));
 
 const Comment = model("Comment", commentSchema);
 export default Comment;

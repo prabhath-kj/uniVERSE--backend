@@ -26,8 +26,6 @@ export const getAllComments = async (req, res) => {
     const { postId } = req.params;
 
     const comments = await Comment.find({ postId: postId });
-
-    console.log(comments);
     res.json({ comments: comments });
   } catch (error) {
     console.log(error);

@@ -178,3 +178,14 @@ export const getReportedPosts = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const deleteReport = async (req, res) => {
+  try {
+
+    await Report.findByIdAndDelete(req.body.reportId);
+    return res.json({ message:"Successfully updated" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
