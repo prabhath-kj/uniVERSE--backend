@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import Activity from "./activityFeeds.js";
 
 const postSchema = Schema(
   {
@@ -32,6 +33,10 @@ const postSchema = Schema(
   { timestamps: true }
 );
 
+postSchema.pre('save', async function (next) {
+  await Activity.findOneAndUpdate({}, { $inc: { posts: 1 } ,timestamp:Date.now()}, { upsert: true });
+  next();
+});
 const Post = model("Post", postSchema);
 
 export default Post;

@@ -7,6 +7,7 @@ import cloudinary from "../services/clodinary.js";
 import { createNotification } from "../models/notification.js";
 import { log } from "console";
 
+
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
   const token = crypto.randomBytes(32).toString("hex");
@@ -56,7 +57,8 @@ export const login = async (req, res) => {
     if (user?.blocked) return res.json({ message: "you are blocked by admin" });
     if (!user?.password)
       return res.json({ message: "Invalid email or password" });
-    const comparePassword = bcrypt.compare(password, user.password);
+    const comparePassword =await bcrypt.compare(password, user.password);
+    console.log(comparePassword);
     if (!comparePassword)
       return res.json({ message: "Invalid Email or Password" });
 
@@ -106,7 +108,7 @@ export const getUser = async (req, res) => {
     }).exec();
 
     if (users.length === 0) {
-      return res.status(200).json({ message: "No users found" });
+      return res.status(200).json({users:[]});
     }
 
     res.json({ users: users });
@@ -274,3 +276,57 @@ export const getFollowing = async (req, res) => {
     res.status(500).json({ message: "Error retrieving following users" });
   }
 };
+
+export const recover=async(req,res)=>{
+  try{
+    const{email}=req.body
+    const user =await User.findOne({email:email})
+    console.log(user);
+    if(!user){
+      return res.status(200).json({error:"You are new to universe,please signup first"})
+    }
+    if(user?.blocked){
+      return res.status(200).json({error:"You are blocked by admin,please contact admin"})
+    }
+    const generateOTP =  Math.floor(1000 + Math.random() * 9000).toString();
+     const newOtp=new Token({
+      userId:user?._id,
+      token:generateOTP
+     })
+     await newOtp.save()
+    sendMail(email,"OTP",generateOTP)
+    res.status(200).json({message:"Otp successfully sended"})
+  }catch(err){
+    res.status(500).json({ message: "Error retrieving  user" });
+
+  }
+}
+
+
+export const verify = async (req, res) => {
+  try {
+    const { otp, password, email } = req.body;
+    console.log(req.body);
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(200).json({ error: "No users found" });
+    }
+
+    const token = await Token.findOne({ userId: user._id });
+
+    if (token && token.token === otp) {
+      await User.findByIdAndUpdate(user._id, { password :password}, { new: true });
+
+      await Token.findByIdAndDelete(token._id);
+
+      return res.status(200).json({ message: "Password reset successful" });
+    } else {
+      return res.status(200).json({ error: "Invalid OTP" });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+

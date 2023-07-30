@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import Jwt from "jsonwebtoken";
 import findOrCreate from "mongoose-findorcreate";
+import Activity from "./activityFeeds.js";
 
 const userSchema = new Schema({
   googleId: {
@@ -89,7 +90,10 @@ userSchema.methods.generateToken = function () {
 };
 
 userSchema.plugin(findOrCreate);
-
+userSchema.pre('save', async function (next) {
+  await Activity.findOneAndUpdate({}, { $inc: { users: 1 } ,timestamp:Date.now()}, { upsert: true });
+  next();
+});
 const User = model("User", userSchema);
 
 export default User;

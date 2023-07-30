@@ -9,6 +9,8 @@ import {
   getProfileUser,
   getFollowers,
   getFollowing,
+  recover,
+  verify,
 } from "../controllers/user.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -18,6 +20,10 @@ const router = express.Router();
 router.route("/login").post(login);
 
 router.route("/register").post(register);
+
+router.route("/recoverPassword").post(recover);
+
+router.route("/verifyOtp").post(verify);
 
 router.route("/searchUser").post(getUser);
 

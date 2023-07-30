@@ -1,5 +1,6 @@
 import User from "../models/user.js";
 import Post from "../models/post.js";
+import Activity from "../models/activityFeeds.js"
 
 export const login = async (req, res) => {
   try {
@@ -92,4 +93,15 @@ export const getPosts=async(req,res)=>{
     } catch (err) {
       res.status(404).json({ message: err.message });
     }
+}
+
+export const getCurrentActivity=async(req,res)=>{
+    try {
+      const activityData = await Activity.find().sort({ timestamp: -1 }).limit(10);
+      res.json(activityData);
+    } catch (error) {
+      console.error('Error fetching activity feed:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  
 }
