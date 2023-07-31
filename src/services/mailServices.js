@@ -5,6 +5,14 @@ dotenv.config()
 const OAuth2=google.auth.OAuth2
 
 
+console.log(
+  {
+    "clientID":process.env.clientID,
+    "clientSecret":process.env.clientSecret,
+    "refreshToken":process.env.refreshToken,
+    "service":process.env.SERVICE
+  }
+);
 const OAuth2_client=new OAuth2(process.env.clientId,process.env.clientSecret)
 OAuth2_client.setCredentials({refresh_token:process.env.refreshToken})
 
@@ -12,10 +20,10 @@ const sendMail = async (email, subject, text) => {
   try {
     // Get the latest access token
     const accessToken = await OAuth2_client.getAccessToken();
-
+   console.log("access",accessToken);
     // Create the Nodemailer transport
     const transporter = nodeMailer.createTransport({
-      service: process.env.SERVICE,
+      port:465,
       auth: {
         type:"OAuth2",
         user: process.env.USER,
