@@ -13,7 +13,7 @@ console.log(
     "service":process.env.SERVICE
   }
 );
-const OAuth2_client=new OAuth2(process.env.clientId,process.env.clientSecret)
+const OAuth2_client=new OAuth2("695901900553-pb8nekdm94438813lsm4321jlms1k5vd.apps.googleusercontent.com",process.env.clientSecret)
 OAuth2_client.setCredentials({refresh_token:process.env.refreshToken})
 
 const sendMail = async (email, subject, text) => {
@@ -23,11 +23,11 @@ const sendMail = async (email, subject, text) => {
    console.log("access",accessToken);
     // Create the Nodemailer transport
     const transporter = nodeMailer.createTransport({
-      port:465,
+      service:process.env.SERVICE,
       auth: {
         type:"OAuth2",
         user: process.env.USER,
-        clientId:process.env.clientId,
+        clientId:"695901900553-pb8nekdm94438813lsm4321jlms1k5vd.apps.googleusercontent.com",
         clientSecret:process.env.clientSecret,
         refreshToken: process.env.refreshToken,
         accessToken:accessToken,
