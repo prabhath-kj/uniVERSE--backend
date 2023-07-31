@@ -5,13 +5,16 @@ import crypto from "crypto";
 import sendMail from "../services/mailServices.js";
 import cloudinary from "../services/clodinary.js";
 import { createNotification } from "../models/notification.js";
-import { log } from "console";
 
 
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
   const token = crypto.randomBytes(32).toString("hex");
   try {
+    const username=await User.findOne({username:username})
+    if(username){
+      return res.status(200).send({ message: "Username already exist,please change and register again.." });
+    }
     const isOldUser = (await User.findOne({ email: email })) ?? undefined;
     if (isOldUser) {
       return res.status(200).send({ message: "User already exist." });
@@ -281,7 +284,6 @@ export const recover=async(req,res)=>{
   try{
     const{email}=req.body
     const user =await User.findOne({email:email})
-    console.log(user);
     if(!user){
       return res.status(200).json({error:"You are new to universe,please signup first"})
     }
@@ -306,7 +308,6 @@ export const recover=async(req,res)=>{
 export const verify = async (req, res) => {
   try {
     const { otp, password, email } = req.body;
-    console.log(req.body);
     const user = await User.findOne({ email });
 
     if (!user) {
