@@ -5,28 +5,37 @@ dotenv.config()
 const OAuth2=google.auth.OAuth2
 
 
-
-const OAuth2_client=new OAuth2("695901900553-pb8nekdm94438813lsm4321jlms1k5vd.apps.googleusercontent.com","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")
-OAuth2_client.setCredentials({refresh_token:"1//04g0IhJ27CknOCgYIARAAGAQSNwF-L9IrWiUNUE-14ncex3BPq_16MVzI-M4a8nUuozS_O3oLJGQnQ0Ca1c0u4lJ3dI_ziy9Pd7I"})
+console.log(
+  {
+    "clientID":process.env.clientID,
+    "clientSecret":process.env.clientSecret,
+    "refreshToken":process.env.refreshToken,
+    "service":process.env.SERVICE
+  }
+);
+const OAuth2_client=new OAuth2(process.env.clientID,process.env.clientSecret)
+OAuth2_client.setCredentials({refresh_token:process.env.refreshToken})
 
 const sendMail = async (email, subject, text) => {
   try {
-  
+    const accessToken = await OAuth2_client.getAccessToken();
+   console.log("access",accessToken);
     const transporter = nodeMailer.createTransport({
-      service:"gmail",
+      service:process.env.SERVICE,
       auth: {
         type:"OAuth2",
         user: process.env.USER,
-        clientId:"695901900553-pb8nekdm94438813lsm4321jlms1k5vd.apps.googleusercontent.com",
-        clientSecret:"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",
-        refreshToken: "1//04g0IhJ27CknOCgYIARAAGAQSNwF-L9IrWiUNUE-14ncex3BPq_16MVzI-M4a8nUuozS_O3oLJGQnQ0Ca1c0u4lJ3dI_ziy9Pd7I",
-        accessToken:await OAuth2_client.getAccessToken(),
+        clientId:process.env.clientID,
+        clientSecret:process.env.clientSecret,
+        refreshToken: process.env.refreshToken,
+        accessToken:accessToken,
       },
       tls: {
         rejectUnauthorized: true,
       },
     });
 
+    // Send the email using the transporter
     await transporter.sendMail({
       from: process.env.USER,
       to: email,
