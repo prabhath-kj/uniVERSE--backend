@@ -11,8 +11,8 @@ export const register = async (req, res) => {
   const { username, email, password } = req.body;
   const token = crypto.randomBytes(32).toString("hex");
   try {
-    const username=await User.findOne({username:username})
-    if(username){
+    const name=await User.findOne({username:username})
+    if(name){
       return res.status(200).send({ message: "Username already exist,please change and register again.." });
     }
     const isOldUser = (await User.findOne({ email: email })) ?? undefined;
