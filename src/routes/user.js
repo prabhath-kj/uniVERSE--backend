@@ -11,6 +11,7 @@ import {
   getFollowing,
   recover,
   verify,
+  change,
 } from "../controllers/user.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -22,6 +23,8 @@ router.route("/login").post(login);
 router.route("/register").post(register);
 
 router.route("/recoverPassword").post(recover);
+
+router.route("/changePassword").post(authMiddleware,change)
 
 router.route("/verifyOtp").post(verify);
 

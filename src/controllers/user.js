@@ -331,3 +331,35 @@ export const verify = async (req, res) => {
   }
 };
 
+export const change=async(req,res)=>{
+  const {_id}=req.user
+  const {  oldPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(_id);
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(200).json({ message: 'User not found' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(200).json({ message: 'Invalid old password' });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt();
+    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update the user's password with the new hashed password
+    user.password = hashedNewPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ message: 'An error occurred. Please try again later.' });
+  }
+}
