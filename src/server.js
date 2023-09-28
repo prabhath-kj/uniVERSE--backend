@@ -15,7 +15,7 @@ import notification from "./routes/notifications.js";
 import comment from "./routes/comments.js";
 import conversation from "./routes/conversation.js";
 import message from "./routes/message.js";
-import { addUser, removeUser, getUser } from "./utils/socketServer.js";
+import { addUser, removeUser, getUser, users } from "./utils/socketServer.js";
 
 dotenv.config();
 connectDb();
@@ -60,6 +60,7 @@ io.on("connection", (socket) => {
     io.emit("get:users", user);
   });
 });
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);

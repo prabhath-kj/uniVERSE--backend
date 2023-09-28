@@ -1,22 +1,22 @@
 import {createTransport} from "nodemailer";
-import * as dotenv from "dotenv"
-dotenv.config()
+
+
 
 const sendMail = async (email, subject, text) => {
   try {
     const transporter = createTransport({
-      host:process.env.HOST,
-      service:process.env.SERVICE,
+      host: "smtp.gmail.com",
+      service:"gmail",
       secure: false,
       auth: {
-        user: process.env.USER,
-        pass: process.env.PASS,
+        user: "prabhathkj4@gmail.com",
+        pass: "qexxvcbwwkcelywt",
       },
     });
 
     // Send the email using the transporter
     await transporter.sendMail({
-      from: process.env.USER,
+      from: "prabhathkj4@gmail.com",
       to: email,
       subject: subject,
       text: text,

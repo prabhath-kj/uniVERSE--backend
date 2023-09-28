@@ -21,7 +21,7 @@ export const googleRegister = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Resistered Successfull,Please login to continue" });
+      .json({ message: "Registered Successfully,Please login to continue" });
   } catch (error) {
     console.error("Error in Google registration:", error);
     res.status(500).json({ error: "Internal Server Error" });
